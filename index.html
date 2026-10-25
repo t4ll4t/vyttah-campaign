@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<title>Vyttah campaign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f8f7f4;--bar:#efeeea;--ink:#141414;--muted:#6b6a66;--faint:#9b998f;--rule:#e2e0d8;--panel:#fff;--track:#ebe9e2;
+--good:#138a4b;--bad:#c23450;--alt:#b9b6ab;
+--serif:"Instrument Serif","Times New Roman",Times,serif;--sans:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;
+  background:rgba(239,238,234,.92);backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--rule)}
+.mark{font:28px/1 var(--serif);letter-spacing:.01em}.bmeta{font-size:12.5px;color:var(--muted);text-align:right;line-height:1.35}
+.page{max-width:720px;margin:0 auto;padding:28px 16px 72px}
+.kick{font:600 11.5px/1.4 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+h1{font:400 clamp(34px,8vw,46px)/1.08 var(--serif);margin:0 0 18px;letter-spacing:-.01em}
+h2{display:flex;align-items:center;gap:12px;font:600 12px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:44px 0 16px}
+h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:20px;padding:20px}
+.hero{display:flex;align-items:flex-end;gap:16px}.big{font:400 clamp(84px,22vw,120px)/.78 var(--serif);letter-spacing:-.03em}
+.hero p{margin:0 0 6px;color:var(--muted);font-size:16px;line-height:1.4}.hero p b{color:var(--ink);font-weight:600}
+.tla,.tll{position:relative;height:16px;font-size:11.5px;color:var(--faint)}.tla{margin-top:22px}
+.tla span,.tll span{position:absolute;white-space:nowrap}.tla .r,.tll .r{transform:translateX(-100%)}
+.tl{position:relative;height:8px;background:var(--track);border-radius:999px;margin:8px 0}
+.tl .fill{position:absolute;inset:0 auto 0 0;background:var(--ink);border-radius:999px;width:var(--w);transition:width 1.4s cubic-bezier(.2,.75,.25,1)}
+.tl .tick{position:absolute;top:-4px;width:2px;height:16px;background:var(--faint);border-radius:2px}
+.tl .now{position:absolute;top:-6px;width:20px;height:20px;margin-left:-10px;border-radius:50%;background:var(--panel);border:4px solid var(--ink);left:var(--w);transition:left 1.4s cubic-bezier(.2,.75,.25,1)}
+.pre .tl .fill{width:0}.pre .tl .now{left:0}
+.daynote{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:14px;border-top:1px solid var(--rule);padding-top:12px}
+.today{font-size:19px;line-height:1.5;margin:0 0 14px}.dlabel{font-size:13px;color:var(--muted);margin:0 0 8px}
+.next{background:var(--ink);color:#f8f7f4;border-radius:18px;padding:16px 18px;font-size:16px}
+.next .k,.k{display:block;font:600 11px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}.next .k{color:#b9b6ab}
+.lab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}.lab .k{color:var(--muted);margin:0}.lab b{font:400 26px/1 var(--serif)}
+.seg{display:flex;gap:5px;margin-bottom:16px}.seg i{flex:1;height:8px;border-radius:999px;background:var(--track);position:relative;overflow:hidden}
+.seg i::after{content:"";position:absolute;inset:0;background:var(--ink);transform:scaleX(0);transform-origin:left;transition:transform .5s cubic-bezier(.2,.75,.25,1);transition-delay:calc(var(--n)*90ms + .3s)}
+.seg i.on::after{transform:scaleX(1)}.pre .seg i.on::after{transform:scaleX(0)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+.it{display:flex;align-items:center;gap:9px;font-size:14.5px;color:var(--muted);line-height:1.3}.it.on{color:var(--ink)}
+.it small{display:block;font-size:11.5px;color:var(--faint)}
+.dot{flex:none;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--alt);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+.it.on .dot{background:var(--ink);border-color:var(--ink)}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:600px){.tiles{grid-template-columns:repeat(4,1fr)}}
+.tile{background:var(--panel);border:1px solid var(--rule);border-radius:16px;padding:14px}
+.tile .l{font-size:12.5px;color:var(--muted)}.tile .v{font-size:27px;font-weight:650;letter-spacing:-.015em;margin:2px 0 8px}.tile .v small{font-size:14px;font-weight:500;color:var(--muted)}
+.mini{height:5px;background:var(--track);border-radius:999px;position:relative;overflow:hidden}.mini i{position:absolute;inset:0 auto 0 0;border-radius:999px;background:var(--ink);width:var(--w);transition:width 1.2s cubic-bezier(.2,.75,.25,1)}
+.pre .mini i{width:0}.tile .s{font-size:12px;color:var(--muted);margin-top:7px}.good{color:var(--good)}.bad{color:var(--bad)}.mini i.good{background:var(--good)}.mini i.bad{background:var(--bad)}
+.bars{display:flex;align-items:flex-end;gap:8px;height:110px;margin-top:6px}.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.bars .b i{display:block;width:100%;background:var(--track);border-radius:6px;min-height:4px;height:var(--h);transition:height .9s cubic-bezier(.2,.75,.25,1)}.pre .bars .b i{height:4px}
+.bars .b.now i{background:var(--ink)}.bars em{font-style:normal;font-size:12px;font-weight:600;margin-bottom:4px}.days{display:flex;gap:8px;margin-top:6px}.days span{flex:1;text-align:center;font-size:11px;color:var(--faint)}
+.wk{border-top:1px solid var(--rule)}.wk:last-child{border-bottom:1px solid var(--rule)}
+.wkh{appearance:none;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;width:100%;display:grid;grid-template-columns:38px 1fr auto;gap:12px;align-items:center;padding:14px 0;-webkit-tap-highlight-color:transparent}
+.num{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--alt);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:650;color:var(--muted)}
+.wk.done .num{background:var(--ink);border-color:var(--ink);color:#fff}.wk.cur .num{border:2px solid var(--ink);color:var(--ink)}
+.wt{font:400 22px/1.15 var(--serif)}.wd{font-size:12.5px;color:var(--muted)}
+.pill{font:600 10.5px/1 var(--sans);letter-spacing:.07em;text-transform:uppercase;border-radius:999px;padding:6px 9px;white-space:nowrap;border:1px solid var(--rule);color:var(--muted)}
+.wk.cur .pill{background:var(--ink);border-color:var(--ink);color:#fff}.wk.done .pill{border-color:var(--ink);color:var(--ink)}
+.wkb{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s ease}.wk.open .wkb{grid-template-rows:1fr}.wkb>div{overflow:hidden}
+.wkb ul{margin:0 0 10px 50px;padding:0}.wkb li{font-size:14.5px;margin:0 0 4px}.wkb p{margin:0 0 16px 50px;font-size:13.5px;color:var(--muted)}.wkb p b{color:var(--ink);font-weight:600}
+.log{position:relative;padding-left:22px}.log::before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:2px;background:var(--track);border-radius:2px}
+.ent{position:relative;margin-bottom:22px}.ent::before{content:"";position:absolute;left:-21px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--ink)}
+.ent .dl{font-size:12.5px;color:var(--muted);margin-bottom:2px}.ent p{margin:0;font-size:15.5px}.ent .nx{font-size:13.5px;color:var(--muted);margin-top:4px}
+.foot{margin-top:48px;font-size:12.5px;color:var(--muted);line-height:1.5;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}.foot b{font:400 22px/1 var(--serif);color:var(--ink)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.motion .rv{opacity:0}.motion .rv.in{animation:rise .65s cubic-bezier(.2,.75,.25,1) both;animation-delay:calc(var(--i,0)*70ms)}.motion .rv.done{opacity:1;animation:none}
+.lock{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+.lock .panel{width:100%;max-width:380px;text-align:center;padding:30px 24px}.lock .mark{font-size:40px}
+.lock p{color:var(--muted);margin:6px 0 22px;font-size:15px}
+.lock input{width:100%;font:16px var(--sans);padding:13px 14px;border:1px solid var(--rule);border-radius:12px;background:var(--bg);color:var(--ink);outline:none}
+.lock input:focus{border-color:var(--ink)}
+.lock button{margin-top:12px;width:100%;appearance:none;border:0;border-radius:12px;padding:13px;font:600 15px var(--sans);background:var(--ink);color:#fff;cursor:pointer}
+.err{color:var(--bad);font-size:13.5px;min-height:20px;margin-top:10px}
+@media (prefers-reduced-motion:reduce){.motion .rv{opacity:1}.motion .rv.in{animation:none}*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function () {
+  var app = document.getElementById("app");
+  var MOTION = !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  if (MOTION) document.documentElement.classList.add("motion");
+  var KEY = "vyttah-key-v1";
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function b64(s) { var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+  function money(v) { return v == null ? "–" : "$" + Math.round(v).toLocaleString("en-US"); }
+  function pct(a, b) { return b ? Math.max(0, Math.min(100, Math.round(100 * a / b))) : 0; }
+  function d(iso) { return new Date(iso + "T12:00:00Z"); }
+  function fmt(iso, o) { return d(iso).toLocaleDateString("en-US", Object.assign({ timeZone: "UTC" }, o)); }
+
+  function deriveKey(pw, salt, iter) {
+    return crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]).then(function (base) {
+      return crypto.subtle.deriveKey({ name: "PBKDF2", salt: salt, iterations: iter, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, true, ["decrypt"]);
+    });
+  }
+  function decrypt(key, enc) {
+    return crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(enc.iv) }, key, b64(enc.ct)).then(function (buf) { return JSON.parse(new TextDecoder().decode(buf)); });
+  }
+  function remember(key) {
+    crypto.subtle.exportKey("jwk", key).then(function (j) { try { localStorage.setItem(KEY, JSON.stringify(j)); } catch (e) {} });
+  }
+  function savedKey() {
+    var j; try { j = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { j = null; }
+    return j ? crypto.subtle.importKey("jwk", j, { name: "AES-GCM" }, true, ["decrypt"]) : Promise.reject();
+  }
+
+  function lockScreen(enc, msg) {
+    app.innerHTML = '<div class="lock"><div class="panel"><div class="mark">Vyttah</div><p>Campaign tracker</p>' +
+      '<form id="f"><input id="pw" type="password" autocomplete="current-password" placeholder="Password" aria-label="Password"><button type="submit">Open</button></form>' +
+      '<div class="err" id="err">' + esc(msg || "") + "</div></div></div>";
+    var f = document.getElementById("f"), pw = document.getElementById("pw"), err = document.getElementById("err");
+    pw.focus();
+    f.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      if (!pw.value) { err.textContent = "Enter the password first."; return; }
+      err.textContent = "Opening…";
+      deriveKey(pw.value, b64(enc.salt), enc.iter).then(function (key) {
+        return decrypt(key, enc).then(function (data) { remember(key); render(data); });
+      }).catch(function () { err.textContent = "That password didn't work. Try again."; pw.select(); });
+    });
+  }
+
+  function timeline(c, today) {
+    var s = d(c.start), g = d(c.deadline), span = (g - s) / 864e5;
+    var at = function (x) { return pct((d(x) - s) / 864e5, span); };
+    return '<div class="tla"><span style="left:' + at(c.launch) + '%">ads start ' + fmt(c.launch, { month: "short", day: "numeric" }) + '</span>' +
+      '<span class="r" style="left:' + at(c.end) + '%">campaign ends ' + fmt(c.end, { month: "short", day: "numeric" }) + "</span></div>" +
+      '<div class="tl" style="--w:' + pct((d(today) - s) / 864e5, span) + '%"><div class="fill"></div><div class="tick" style="left:' + at(c.launch) + '%"></div>' +
+      '<div class="tick" style="left:' + at(c.end) + '%"></div><div class="now"></div></div>' +
+      '<div class="tll"><span style="left:0">' + fmt(c.start, { month: "short", day: "numeric" }) + '</span><span class="r" style="left:100%">go-live Jan 1</span></div>';
+  }
+
+  function scoreboard(x) {
+    var c = x.campaign, k = x.kpis;
+    if (!k) {
+      var segs = x.setup.map(function (i, n) { return '<i class="' + (i.done ? "on" : "") + '" style="--n:' + n + '"></i>'; }).join("");
+      var grid = x.setup.map(function (i) {
+        return '<div class="it' + (i.done ? " on" : "") + '"><span class="dot">' + (i.done ? "✓" : "") + "</span><span>" + esc(i.item) +
+          (i.done ? "<small>" + fmt(i.done, { month: "short", day: "numeric" }) + "</small>" : "") + "</span></div>";
+      }).join("");
+      return '<div class="panel rv"><div class="lab"><span class="k">Setup before ads start</span><b>' + x.setup_done + " of " + x.setup.length + '</b></div>' +
+        '<div class="seg">' + segs + '</div><div class="grid">' + grid + "</div></div>";
+    }
+    var cls = k.cpl == null ? "" : (k.cpl <= c.target_cpl ? "good" : "bad");
+    var html = '<div class="tiles rv">' +
+      '<div class="tile"><div class="l">Leads</div><div class="v">' + k.leads_total + "<small> / " + c.target_leads + '</small></div><div class="mini"><i style="--w:' + pct(k.leads_total, c.target_leads) + '%"></i></div></div>' +
+      '<div class="tile"><div class="l">Cost per lead</div><div class="v ' + cls + '">' + money(k.cpl) + '</div><div class="mini"><i class="' + cls + '" style="--w:' + pct(k.cpl || 0, c.target_cpl * 1.5) + '%"></i></div><div class="s">target ' + money(c.target_cpl) + "</div></div>" +
+      '<div class="tile"><div class="l">Budget used</div><div class="v">' + money(k.spend_total) + '</div><div class="mini"><i style="--w:' + pct(k.spend_total || 0, c.budget) + '%"></i></div><div class="s">of ' + money(c.budget) + "</div></div>" +
+      '<div class="tile"><div class="l">Good leads</div><div class="v">' + (k.good_total == null ? "–" : k.good_total) + '</div><div class="s">tagged by sales</div></div></div>';
+    if (x.by_day && x.by_day.length) {
+      var top = Math.max.apply(null, x.by_day.map(function (e) { return e.n; })) || 1;
+      html += '<div class="panel rv" style="margin-top:10px"><div class="lab"><span class="k">Leads per day</span><b>' + x.by_day[x.by_day.length - 1].n + ' today</b></div><div class="bars">' +
+        x.by_day.map(function (e, i) { return '<div class="b' + (i === x.by_day.length - 1 ? " now" : "") + '"><em>' + e.n + '</em><i style="--h:' + Math.max(5, Math.round(80 * e.n / top)) + '%"></i></div>'; }).join("") +
+        '</div><div class="days">' + x.by_day.map(function (e) { return "<span>" + fmt(e.date, { weekday: "short" }) + "</span>"; }).join("") + "</div></div>";
+    }
+    return html;
+  }
+
+  function plan(x) {
+    return '<div class="rv">' + x.plan.map(function (w) {
+      var st = w.week < x.week ? "done" : w.week === x.week ? "cur" : "";
+      var label = st === "done" ? "Done" : st === "cur" ? "This week" : "Ahead";
+      var res = (x.results || {})[w.week];
+      return '<div class="wk ' + st + (st === "cur" ? " open" : "") + '"><button class="wkh" aria-expanded="' + (st === "cur") + '"><span class="num">' + w.week + "</span>" +
+        '<span><span class="wt">' + esc(w.theme) + '</span><br><span class="wd">' + fmt(w.start, { month: "short", day: "numeric" }) + " – " + fmt(w.end, { month: "short", day: "numeric" }) +
+        " · " + (w.budget ? money(w.budget) + " ads" : "no ad spend") + '</span></span><span class="pill">' + label + "</span></button>" +
+        '<div class="wkb"><div><ul>' + w.items.map(function (i) { return "<li>" + esc(i) + "</li>"; }).join("") + "</ul>" +
+        "<p><b>Success looks like:</b> " + esc(w.success) + "</p>" + (res ? "<p><b>Result:</b> " + esc(res) + "</p>" : "") + "</div></div></div>";
+    }).join("") + "</div>";
+  }
+
+  function render(x) {
+    var c = x.campaign, t = x.today;
+    var up = new Date(x.updated);
+    var ny = up.toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    var dxb = up.toLocaleString("en-US", { timeZone: "Asia/Dubai", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    var wk = x.plan[x.week - 1] || {};
+    app.innerHTML =
+      '<header class="bar"><span class="mark">Vyttah</span><span class="bmeta">Campaign tracker<br>Updated ' + esc(dxb) + " Dubai</span></header>" +
+      '<main class="page pre" id="page">' +
+      '<p class="kick rv">UAE e-invoicing lead campaign · week ' + x.week + " of 10 · " + esc(wk.theme || "") + "</p>" +
+      '<div class="panel rv"><div class="hero"><div class="big">' + x.days_left + '</div><p>days until <b>UAE e-invoicing</b><br>goes live on 1 January 2027</p></div>' +
+      timeline(c, x.date) + '<div class="daynote"><span>Campaign day ' + x.day_n + " of " + x.days_total + "</span><span>" + money(x.kpis ? x.kpis.spend_total : 0) + " of " + money(c.budget) + " spent</span></div></div>" +
+      (t ? '<h2 class="rv">Latest update</h2><p class="dlabel rv">' + fmt(t.date, { weekday: "long", month: "long", day: "numeric" }) + '</p><p class="today rv">' + esc(t.text) + "</p>" +
+        (t.next ? '<div class="next rv"><span class="k">Next</span>' + esc(t.next) + "</div>" : "") : "") +
+      '<h2 class="rv">Scoreboard</h2>' + scoreboard(x) +
+      '<h2 class="rv">The 10-week plan</h2>' + plan(x) +
+      (x.log.length > 1 ? '<h2 class="rv">Earlier updates</h2><div class="log rv">' + x.log.slice(1).map(function (e) {
+        return '<div class="ent"><div class="dl">' + fmt(e.date, { weekday: "short", month: "short", day: "numeric" }) + "</div><p>" + esc(e.text) + "</p>" +
+          (e.next ? '<div class="nx">Next: ' + esc(e.next) + "</div>" : "") + "</div>";
+      }).join("") + "</div>" : "") +
+      '<div class="foot rv"><span>Updated every day at 8 PM New York (' + esc(ny) + ")<br>Budget $5,000 · UAE only · target 60 leads by 27 Dec</span><b>Sahil</b></div>" +
+      "</main>";
+
+    var page = document.getElementById("page");
+    var items = Array.prototype.slice.call(page.querySelectorAll(".rv"));
+    if (MOTION && "IntersectionObserver" in window) {
+      var i = 0;
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          var el = e.target; el.style.setProperty("--i", Math.min(i++, 8)); el.classList.add("in"); io.unobserve(el);
+          setTimeout(function () { el.classList.add("done"); }, 1400);  // visible even if the animation is paused
+        });
+        setTimeout(function () { i = 0; }, 400);
+      }, { rootMargin: "0px 0px -8% 0px" });
+      items.forEach(function (el) { io.observe(el); });
+      setTimeout(function () { items.forEach(function (el) { el.classList.add("in", "done"); }); }, 4000);  // never leave content hidden
+    } else {
+      items.forEach(function (el) { el.classList.add("in"); });
+    }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { page.classList.remove("pre"); }); });
+    page.addEventListener("click", function (ev) {
+      var h = ev.target.closest(".wkh"); if (!h) return;
+      var w = h.parentElement, open = w.classList.toggle("open"); h.setAttribute("aria-expanded", String(open));
+    });
+  }
+
+  var local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /[?&]plain=1/.test(location.search);
+  if (local) { fetch("data.json", { cache: "no-store" }).then(function (r) { return r.json(); }).then(render); return; }
+  fetch("data.enc.json", { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (enc) {
+    savedKey().then(function (key) { return decrypt(key, enc).then(render); }).catch(function () { lockScreen(enc); });
+  }).catch(function () { app.innerHTML = '<div class="lock"><div class="panel"><div class="mark">Vyttah</div><p>Not published yet.</p></div></div>'; });
+})();
+</script>
+</body>
+</html>
