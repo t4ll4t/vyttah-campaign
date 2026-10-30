@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f8f7f4;--bar:#efeeea;--ink:#141414;--muted:#6b6a66;--faint:#9b998f;--rule:#e2e0d8;--panel:#fff;--track:#ebe9e2;
---good:#138a4b;--bad:#c23450;--alt:#b9b6ab;
+--good:#138a4b;--bad:#c23450;--alt:#b9b6ab;--google:#eb6834;--meta:#2a78d6;--linkedin:#1baf7a;
 --serif:"Instrument Serif","Times New Roman",Times,serif;--sans:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
@@ -55,6 +55,24 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
 .bars{display:flex;align-items:flex-end;gap:8px;height:110px;margin-top:6px}.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
 .bars .b i{display:block;width:100%;background:var(--track);border-radius:6px;min-height:4px;height:var(--h);transition:height .9s cubic-bezier(.2,.75,.25,1)}.pre .bars .b i{height:4px}
 .bars .b.now i{background:var(--ink)}.bars em{font-style:normal;font-size:12px;font-weight:600;margin-bottom:4px}.days{display:flex;gap:8px;margin-top:6px}.days span{flex:1;text-align:center;font-size:11px;color:var(--faint)}
+.chart{position:relative;margin-top:4px;touch-action:pan-y}.chart svg{display:block;overflow:visible}
+.chart .ax{font:11px var(--sans);fill:var(--faint)}.chart .gl{stroke:var(--rule);stroke-width:1}
+.chart .pl{fill:none;stroke:var(--alt);stroke-width:1.5;stroke-dasharray:4 4}.chart .ac{fill:none;stroke:var(--ink);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.chart .dl{font:600 12.5px var(--sans);fill:var(--ink)}.chart .pll{font:11.5px var(--sans);fill:var(--muted)}.chart .xh{stroke:var(--faint);stroke-width:1}
+.tip{position:absolute;z-index:3;pointer-events:none;background:var(--ink);color:#f8f7f4;font-size:12.5px;line-height:1.4;padding:7px 10px;border-radius:10px;white-space:nowrap;transform:translate(-50%,calc(-100% - 10px));opacity:0;transition:opacity .12s}
+.tip.on{opacity:1}.tip b{font-weight:650}.tip span{color:#b9b6ab}
+.pace{font-size:13px;color:var(--muted);margin:-6px 0 10px}.pace b{color:var(--ink);font-weight:600}
+.two{display:grid;gap:10px}@media (min-width:600px){.two{grid-template-columns:1fr 1fr}}
+.two .bars{height:90px;gap:4px}.two .bars .b i{border-radius:4px 4px 1px 1px}.two .days{gap:4px;justify-content:space-between}.two .days span{flex:none;white-space:nowrap}
+.bars .b{cursor:default}.bars .b:hover i{background:var(--muted)}.bars .b.now:hover i{background:var(--ink)}
+.chn{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:14px 0;border-top:1px solid var(--rule)}.chn:first-of-type{border-top:0;padding-top:4px}
+.chn .nm{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px}.chn .nm i{width:10px;height:10px;border-radius:3px;background:var(--c)}
+.chn .rt{text-align:right;font-size:13.5px;color:var(--muted)}.chn .rt b{color:var(--ink);font-size:15px}
+.chn .mini{grid-column:1/-1;height:6px}.chn .mini i{background:var(--c)}.chn .sub{grid-column:1/-1;display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+.chn.off .nm{color:var(--muted);font-weight:500}.chn.off .nm i{background:var(--track)}
+.share{display:flex;gap:2px;height:10px;border-radius:999px;overflow:hidden;margin:2px 0 12px}.share i{background:var(--c);width:var(--w)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted);margin-bottom:14px}.legend span{display:flex;align-items:center;gap:6px}.legend i{width:10px;height:10px;border-radius:3px;background:var(--c)}
+.sample{position:sticky;top:63px;z-index:4;background:#c23450;color:#fff;text-align:center;font:600 12px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;padding:9px}
 .wk{border-top:1px solid var(--rule)}.wk:last-child{border-bottom:1px solid var(--rule)}
 .wkh{appearance:none;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;width:100%;display:grid;grid-template-columns:38px 1fr auto;gap:12px;align-items:center;padding:14px 0;-webkit-tap-highlight-color:transparent}
 .num{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--alt);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:650;color:var(--muted)}
@@ -137,30 +155,126 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
       '<div class="tll"><span style="left:0">' + fmt(c.start, { month: "short", day: "numeric" }) + '</span><span class="r" style="left:100%">go-live Jan 1</span></div>';
   }
 
+  var CH = [["google", "Google"], ["meta", "Meta"], ["linkedin", "LinkedIn"]];
+  function at(path, iso) {  // value of a dated path at a date, straight lines between points
+    var t = d(iso);
+    if (t <= d(path[0].date)) return path[0].v;
+    for (var i = 1; i < path.length; i++) {
+      var a = path[i - 1], b = path[i];
+      if (t <= d(b.date)) return a.v + (b.v - a.v) * (t - d(a.date)) / ((d(b.date) - d(a.date)) || 1);
+    }
+    return path[path.length - 1].v;
+  }
+
+  function setupPanel(x) {
+    var segs = x.setup.map(function (i, n) { return '<i class="' + (i.done ? "on" : "") + '" style="--n:' + n + '"></i>'; }).join("");
+    var grid = x.setup.map(function (i) {
+      return '<div class="it' + (i.done ? " on" : "") + '"><span class="dot">' + (i.done ? "✓" : "") + "</span><span>" + esc(i.item) +
+        (i.done ? "<small>" + fmt(i.done, { month: "short", day: "numeric" }) + "</small>" : "") + "</span></div>";
+    }).join("");
+    return '<div class="panel rv"><div class="lab"><span class="k">Setup before ads start</span><b>' + x.setup_done + " of " + x.setup.length + '</b></div>' +
+      '<div class="seg">' + segs + '</div><div class="grid">' + grid + "</div></div>";
+  }
+
   function scoreboard(x) {
-    var c = x.campaign, k = x.kpis;
-    if (!k) {
-      var segs = x.setup.map(function (i, n) { return '<i class="' + (i.done ? "on" : "") + '" style="--n:' + n + '"></i>'; }).join("");
-      var grid = x.setup.map(function (i) {
-        return '<div class="it' + (i.done ? " on" : "") + '"><span class="dot">' + (i.done ? "✓" : "") + "</span><span>" + esc(i.item) +
-          (i.done ? "<small>" + fmt(i.done, { month: "short", day: "numeric" }) + "</small>" : "") + "</span></div>";
-      }).join("");
-      return '<div class="panel rv"><div class="lab"><span class="k">Setup before ads start</span><b>' + x.setup_done + " of " + x.setup.length + '</b></div>' +
-        '<div class="seg">' + segs + '</div><div class="grid">' + grid + "</div></div>";
-    }
-    var cls = k.cpl == null ? "" : (k.cpl <= c.target_cpl ? "good" : "bad");
-    var html = '<div class="tiles rv">' +
-      '<div class="tile"><div class="l">Leads</div><div class="v">' + k.leads_total + "<small> / " + c.target_leads + '</small></div><div class="mini"><i style="--w:' + pct(k.leads_total, c.target_leads) + '%"></i></div></div>' +
-      '<div class="tile"><div class="l">Cost per lead</div><div class="v ' + cls + '">' + money(k.cpl) + '</div><div class="mini"><i class="' + cls + '" style="--w:' + pct(k.cpl || 0, c.target_cpl * 1.5) + '%"></i></div><div class="s">target ' + money(c.target_cpl) + "</div></div>" +
-      '<div class="tile"><div class="l">Budget used</div><div class="v">' + money(k.spend_total) + '</div><div class="mini"><i style="--w:' + pct(k.spend_total || 0, c.budget) + '%"></i></div><div class="s">of ' + money(c.budget) + "</div></div>" +
-      '<div class="tile"><div class="l">Good leads</div><div class="v">' + (k.good_total == null ? "–" : k.good_total) + '</div><div class="s">tagged by sales</div></div></div>';
-    if (x.by_day && x.by_day.length) {
-      var top = Math.max.apply(null, x.by_day.map(function (e) { return e.n; })) || 1;
-      html += '<div class="panel rv" style="margin-top:10px"><div class="lab"><span class="k">Leads per day</span><b>' + x.by_day[x.by_day.length - 1].n + ' today</b></div><div class="bars">' +
-        x.by_day.map(function (e, i) { return '<div class="b' + (i === x.by_day.length - 1 ? " now" : "") + '"><em>' + e.n + '</em><i style="--h:' + Math.max(5, Math.round(80 * e.n / top)) + '%"></i></div>'; }).join("") +
-        '</div><div class="days">' + x.by_day.map(function (e) { return "<span>" + fmt(e.date, { weekday: "short" }) + "</span>"; }).join("") + "</div></div>";
-    }
+    var c = x.campaign, sr = x.series || [];
+    if (!sr.length) return setupPanel(x);
+    var last = sr[sr.length - 1], leads = last.leads || 0, spend = last.spend || 0;
+    var cpl = leads ? spend / leads : null, cls = cpl == null ? "" : (cpl <= c.target_cpl ? "good" : "bad");
+    var planLeads = Math.round(at(x.lead_path, last.date)), planSpend = at(x.spend_path, last.date);
+    var gap = leads - planLeads;
+    var html = '<p class="pace rv">Numbers as of <b>' + fmt(last.date, { weekday: "short", month: "short", day: "numeric" }) + "</b>, from HubSpot and the ad accounts.</p>" +
+      '<div class="tiles rv">' +
+      '<div class="tile"><div class="l">Leads</div><div class="v">' + leads + "<small> / " + c.target_leads + '</small></div><div class="mini"><i style="--w:' + pct(leads, c.target_leads) + '%"></i></div>' +
+        '<div class="s">' + (gap >= 0 ? '<span class="good">' + gap + " ahead</span>" : '<span class="bad">' + (-gap) + " behind</span>") + " of plan (" + planLeads + ")</div></div>" +
+      '<div class="tile"><div class="l">Money spent</div><div class="v">' + money(spend) + '</div><div class="mini"><i style="--w:' + pct(spend, c.budget) + '%"></i></div>' +
+        '<div class="s">of ' + money(c.budget) + " · plan " + money(planSpend) + "</div></div>" +
+      '<div class="tile"><div class="l">Cost per lead</div><div class="v ' + cls + '">' + money(cpl) + '</div><div class="mini"><i class="' + cls + '" style="--w:' + pct(cpl || 0, c.target_cpl * 1.5) + '%"></i></div>' +
+        '<div class="s">' + (cpl == null ? "target " + money(c.target_cpl) : (cpl <= c.target_cpl ? "under" : "over") + " the " + money(c.target_cpl) + " target") + "</div></div>" +
+      '<div class="tile"><div class="l">Good leads</div><div class="v">' + (last.good == null ? "–" : last.good) + '</div>' +
+        '<div class="s">' + (last.good == null || !leads ? "tagged by sales" : pct(last.good, leads) + "% of leads, tagged by sales") + "</div></div></div>" +
+      '<div class="panel rv" style="margin-top:10px"><div class="lab"><span class="k">Leads vs the plan</span><b>' + leads + '</b></div><div class="chart" id="ch-leads"></div></div>' +
+      '<div class="panel rv" style="margin-top:10px"><div class="lab"><span class="k">Money spent vs the plan</span><b>' + money(spend) + '</b></div><div class="chart" id="ch-spend"></div></div>';
+
+    var steps = sr.slice(-14).map(function (e) {
+      var i = sr.indexOf(e), p = i ? sr[i - 1] : { leads: 0, spend: 0, date: null };
+      return { date: e.date, from: p.date, leads: (e.leads || 0) - (p.leads || 0), spend: (e.spend || 0) - (p.spend || 0) };
+    });
+    html += '<div class="two rv" style="margin-top:10px">' + barPanel("New leads", steps, "leads", String) + barPanel("Money spent", steps, "spend", money) + "</div>";
+
+    var cb = x.channel_budget || {}, shown = CH.filter(function (k) { return cb[k[0]]; });
+    var tl = shown.reduce(function (a, k) { return a + (((last.ch || {})[k[0]] || {}).leads || 0); }, 0);
+    html += '<h2 class="rv">By channel</h2><div class="panel rv"><div class="legend">' + shown.map(function (k) { return '<span style="--c:var(--' + k[0] + ')"><i></i>' + k[1] + "</span>"; }).join("") + "</div>" +
+      (tl ? '<div class="lab" style="margin-bottom:6px"><span class="k">Share of leads</span></div><div class="share">' + shown.map(function (k) {
+        var n = ((last.ch || {})[k[0]] || {}).leads || 0; return n ? '<i style="--c:var(--' + k[0] + ');--w:' + (100 * n / tl) + '%" title="' + k[1] + ": " + n + '"></i>' : "";
+      }).join("") + "</div>" : "") +
+      shown.map(function (k) {
+        var v = (last.ch || {})[k[0]], b = cb[k[0]];
+        if (!v || !(v.spend || v.leads)) return '<div class="chn off" style="--c:var(--' + k[0] + ')"><span class="nm"><i></i>' + k[1] + '</span><span class="rt">not started</span><div class="sub"><span>budget ' + money(b) + "</span></div></div>";
+        var cc = v.leads ? v.spend / v.leads : null, ok = cc == null ? "" : cc <= c.target_cpl ? "good" : "bad";
+        return '<div class="chn" style="--c:var(--' + k[0] + ')"><span class="nm"><i></i>' + k[1] + '</span><span class="rt"><b>' + (v.leads || 0) + "</b> leads · " +
+          '<span class="' + ok + '">' + (cc == null ? "no leads yet" : money(cc) + " each") + "</span></span>" +
+          '<div class="mini"><i style="--w:' + pct(v.spend || 0, b) + '%"></i></div><div class="sub"><span>' + money(v.spend) + " spent</span><span>of " + money(b) + "</span></div></div>";
+      }).join("") +
+      (cb.reserve ? '<div class="sub" style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);border-top:1px solid var(--rule);padding-top:12px"><span>Reserve for the winner (week 5)</span><span>' + money(cb.reserve) + "</span></div>" : "") + "</div>";
     return html;
+  }
+
+  function barPanel(title, steps, key, f) {
+    var top = Math.max.apply(null, steps.map(function (e) { return e[key]; })) || 1, lastv = steps[steps.length - 1][key];
+    return '<div class="panel"><div class="lab"><span class="k">' + title + '</span><b>' + f(lastv) + '</b></div><div class="bars">' +
+      steps.map(function (e, i) {
+        var when = e.from && (d(e.date) - d(e.from)) / 864e5 > 1 ? fmt(e.from, { month: "short", day: "numeric" }) + " to " + fmt(e.date, { month: "short", day: "numeric" }) : fmt(e.date, { weekday: "short", month: "short", day: "numeric" });
+        return '<div class="b' + (i === steps.length - 1 ? " now" : "") + '" data-tip="' + esc("<b>" + f(e[key]) + "</b> <span>" + when + "</span>") + '"><i style="--h:' + Math.max(4, Math.round(92 * e[key] / top)) + '%"></i></div>';
+      }).join("") + '</div><div class="days">' + steps.map(function (e, i) {
+        return i === 0 || i === steps.length - 1 ? "<span>" + fmt(e.date, { month: "short", day: "numeric" }) + "</span>" : "";
+      }).join("") + "</div></div>";
+  }
+
+  function lineChart(host, o) {
+    if (!host) return;
+    var W = host.clientWidth, H = 200, L = 40, R = 58, T = 14, B = 26;
+    var s = d(o.start), span = (d(o.end) - s) || 1;
+    var X = function (iso) { return L + (W - L - R) * Math.max(0, Math.min(1, (d(iso) - s) / span)); };
+    var Y = function (v) { return T + (H - T - B) * (1 - v / o.ymax); };
+    var g = "";
+    for (var i = 0; i <= o.n; i++) {
+      var v = o.ymax * i / o.n;
+      g += '<line class="gl" x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/><text class="ax" x="' + (L - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + o.f(v) + "</text>";
+    }
+    [[o.start, "start"], ["2026-11-15", "middle"], ["2026-12-06", "middle"], [o.end, "end"]].forEach(function (t) {
+      g += '<text class="ax" x="' + X(t[0]) + '" y="' + (H - 6) + '" text-anchor="' + t[1] + '">' + fmt(t[0], { month: "short", day: "numeric" }) + "</text>";
+    });
+    var line = function (pts) { return pts.map(function (p) { return X(p.date).toFixed(1) + "," + Y(p.v).toFixed(1); }).join(" "); };
+    var lp = o.plan[o.plan.length - 1], la = o.pts[o.pts.length - 1];
+    g += '<polyline class="pl" points="' + line(o.plan) + '"/><text class="pll" x="' + (X(lp.date) + 8) + '" y="' + (Y(lp.v) + 4) + '">plan ' + o.f(lp.v) + "</text>";
+    g += '<polyline class="ac" points="' + line(o.pts) + '"/><circle cx="' + X(la.date) + '" cy="' + Y(la.v) + '" r="4.5" fill="var(--ink)" stroke="var(--panel)" stroke-width="2"/>' +
+      '<text class="dl" x="' + (X(la.date) + 9) + '" y="' + (Y(la.v) - 8) + '">' + o.f(la.v) + "</text>";
+    g += '<g id="hv" style="display:none"><line class="xh" y1="' + T + '" y2="' + (H - B) + '"/><circle r="4.5" fill="var(--ink)" stroke="var(--panel)" stroke-width="2"/></g>';
+    host.innerHTML = '<svg width="' + W + '" height="' + H + '" role="img" aria-label="' + esc(o.label) + '">' + g + '</svg><div class="tip"></div>';
+    var svg = host.querySelector("svg"), hv = svg.querySelector("#hv"), tip = host.querySelector(".tip");
+    function show(ev) {
+      var r = svg.getBoundingClientRect(), mx = ev.clientX - r.left, best = null;
+      o.pts.forEach(function (p) { if (!best || Math.abs(X(p.date) - mx) < Math.abs(X(best.date) - mx)) best = p; });
+      var px = X(best.date), py = Y(best.v);
+      hv.style.display = ""; hv.firstChild.setAttribute("x1", px); hv.firstChild.setAttribute("x2", px);
+      hv.lastChild.setAttribute("cx", px); hv.lastChild.setAttribute("cy", py);
+      tip.innerHTML = "<b>" + o.f(best.v) + "</b> <span>" + fmt(best.date, { month: "short", day: "numeric" }) + " · plan " + o.f(at(o.plan, best.date)) + "</span>";
+      tip.style.left = Math.max(70, Math.min(W - 70, px)) + "px"; tip.style.top = py + "px"; tip.classList.add("on");
+    }
+    svg.addEventListener("pointermove", show); svg.addEventListener("pointerdown", show);
+    svg.addEventListener("pointerleave", function () { hv.style.display = "none"; tip.classList.remove("on"); });
+  }
+
+  function charts(x) {
+    var sr = x.series || [];
+    if (!sr.length) return;
+    var c = x.campaign, s0 = x.lead_path[0].date;
+    var lp = [{ date: s0, v: 0 }].concat(sr.map(function (e) { return { date: e.date, v: e.leads || 0 }; }));
+    var spp = [{ date: x.spend_path[0].date, v: 0 }].concat(sr.map(function (e) { return { date: e.date, v: e.spend || 0 }; }));
+    var lmax = Math.max(c.target_leads, lp[lp.length - 1].v), smax = Math.max(c.budget, spp[spp.length - 1].v);
+    lineChart(document.getElementById("ch-leads"), { pts: lp, plan: x.lead_path, start: s0, end: c.end, ymax: Math.ceil(lmax / 15) * 15, n: 3, f: function (v) { return String(Math.round(v)); }, label: "Leads so far against the plan" });
+    lineChart(document.getElementById("ch-spend"), { pts: spp, plan: x.spend_path, start: s0, end: c.end, ymax: Math.ceil(smax / 1000) * 1000, n: Math.ceil(smax / 1000), f: function (v) { return v >= 1000 ? "$" + (Math.round(v / 100) / 10) + "k" : money(v); }, label: "Money spent against the plan" });
   }
 
   function plan(x) {
@@ -184,13 +298,14 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
     var wk = x.plan[x.week - 1] || {};
     app.innerHTML =
       '<header class="bar"><span class="mark">Vyttah</span><span class="bmeta">Campaign tracker<br>Updated ' + esc(dxb) + " Dubai</span></header>" +
+      (SAMPLE ? '<div class="sample">Sample numbers for the preview, not real</div>' : "") +
       '<main class="page pre" id="page">' +
       '<p class="kick rv">UAE e-invoicing lead campaign · week ' + x.week + " of 10 · " + esc(wk.theme || "") + "</p>" +
       '<div class="panel rv"><div class="hero"><div class="big">' + x.days_left + '</div><p>days until <b>UAE e-invoicing</b><br>goes live on 1 January 2027</p></div>' +
       timeline(c, x.date) + '<div class="daynote"><span>Campaign day ' + x.day_n + " of " + x.days_total + "</span><span>" + money(x.kpis ? x.kpis.spend_total : 0) + " of " + money(c.budget) + " spent</span></div></div>" +
       (t ? '<h2 class="rv">Latest update</h2><p class="dlabel rv">' + fmt(t.date, { weekday: "long", month: "long", day: "numeric" }) + '</p><p class="today rv">' + esc(t.text) + "</p>" +
         (t.next ? '<div class="next rv"><span class="k">Next</span>' + esc(t.next) + "</div>" : "") : "") +
-      '<h2 class="rv">Scoreboard</h2>' + scoreboard(x) +
+      '<h2 class="rv">' + ((x.series || []).length ? "Dashboard" : "Scoreboard") + "</h2>" + scoreboard(x) +
       '<h2 class="rv">The 10-week plan</h2>' + plan(x) +
       (x.log.length > 1 ? '<h2 class="rv">Earlier updates</h2><div class="log rv">' + x.log.slice(1).map(function (e) {
         return '<div class="ent"><div class="dl">' + fmt(e.date, { weekday: "short", month: "short", day: "numeric" }) + "</div><p>" + esc(e.text) + "</p>" +
@@ -200,6 +315,19 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
       "</main>";
 
     var page = document.getElementById("page");
+    charts(x);
+    var rw = page.clientWidth;
+    window.addEventListener("resize", function () { if (page.clientWidth !== rw) { rw = page.clientWidth; charts(x); } });
+    var btip = document.createElement("div"); btip.className = "tip"; document.body.appendChild(btip);
+    function barTip(ev) {
+      var b = ev.target.closest && ev.target.closest(".bars .b[data-tip]");
+      if (!b) { btip.classList.remove("on"); return; }
+      var r = b.querySelector("i").getBoundingClientRect();
+      btip.innerHTML = b.getAttribute("data-tip");
+      btip.style.left = Math.max(80, Math.min(innerWidth - 80, r.left + r.width / 2)) + "px"; btip.style.top = (r.top + scrollY) + "px"; btip.classList.add("on");
+    }
+    page.addEventListener("pointerover", barTip); page.addEventListener("pointerdown", barTip);
+    page.addEventListener("pointerleave", function () { btip.classList.remove("on"); });
     var items = Array.prototype.slice.call(page.querySelectorAll(".rv"));
     if (MOTION && "IntersectionObserver" in window) {
       var i = 0;
@@ -223,8 +351,9 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
     });
   }
 
-  var local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /[?&]plain=1/.test(location.search);
-  if (local) { fetch("data.json", { cache: "no-store" }).then(function (r) { return r.json(); }).then(render); return; }
+  var local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /[?&]plain=(1|sample)/.test(location.search);
+  var SAMPLE = local && /[?&]plain=sample/.test(location.search);
+  if (local) { fetch(SAMPLE ? "data.sample.json" : "data.json", { cache: "no-store" }).then(function (r) { return r.json(); }).then(render); return; }
   fetch("data.enc.json", { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (enc) {
     savedKey().then(function (key) { return decrypt(key, enc).then(render); }).catch(function () { lockScreen(enc); });
   }).catch(function () { app.innerHTML = '<div class="lock"><div class="panel"><div class="mark">Vyttah</div><p>Not published yet.</p></div></div>'; });
