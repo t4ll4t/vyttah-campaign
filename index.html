@@ -86,6 +86,21 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
 .ent{position:relative;margin-bottom:22px}.ent::before{content:"";position:absolute;left:-21px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--ink)}
 .ent .dl{font-size:12.5px;color:var(--muted);margin-bottom:2px}.ent p{margin:0;font-size:15.5px}.ent .nx{font-size:13.5px;color:var(--muted);margin-top:4px}
 .foot{margin-top:48px;font-size:12.5px;color:var(--muted);line-height:1.5;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}.foot b{font:400 22px/1 var(--serif);color:var(--ink)}
+.cmp{width:100%;border-collapse:collapse;font-size:14px}.cmp th{font:600 11px/1.2 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right;padding:0 0 10px}
+.cmp th:first-child,.cmp td:first-child{text-align:left}.cmp td{text-align:right;padding:9px 0;border-top:1px solid var(--rule);font-variant-numeric:tabular-nums}
+.cmp td:first-child{color:var(--muted)}.cmp th i{display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--c);margin-right:6px}
+.adr{padding:14px 0;border-top:1px solid var(--rule)}.adr:first-of-type{border-top:0;padding-top:2px}
+.adr .top{display:flex;justify-content:space-between;align-items:center;gap:10px}.adr .nm{display:flex;align-items:center;gap:8px;font-weight:600}.adr .nm i{width:10px;height:10px;border-radius:3px;background:var(--c)}
+.adr .ab{font-size:13px;color:var(--muted);margin:2px 0 8px}.adr .st{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted)}.adr .st b{color:var(--ink);font-weight:600}
+.adr .mini{margin-top:9px}.adr .jd{font-size:11.5px;color:var(--faint);margin-top:4px}
+.lbl{font:600 10.5px/1 var(--sans);letter-spacing:.07em;text-transform:uppercase;border-radius:999px;padding:6px 9px;white-space:nowrap;border:1px solid var(--rule);color:var(--muted)}
+.lbl.winning{background:var(--good);border-color:var(--good);color:#fff}.lbl.losing,.lbl.costly{border-color:var(--bad);color:var(--bad)}.lbl.barely{border-style:dashed}
+.who{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:14.5px;margin:0}.who dt{color:var(--muted);font-size:13px;padding-top:1px}.who dd{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.chips span{font-size:12.5px;border:1px solid var(--rule);border-radius:999px;padding:4px 10px;background:var(--bg)}
+.chips.no span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--alt)}
+.srch{display:grid;grid-template-columns:1fr auto;gap:3px 12px;padding:8px 0;border-top:1px solid var(--rule);font-size:14px}.srch:first-of-type{border-top:0}
+.srch .r{color:var(--muted);font-size:13px;text-align:right}.srch .mini{grid-column:1/-1;height:4px}.srch .mini i{background:var(--google)}
+.note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .motion .rv{opacity:0}.motion .rv.in{animation:rise .65s cubic-bezier(.2,.75,.25,1) both;animation-delay:calc(var(--i,0)*70ms)}.motion .rv.done{opacity:1;animation:none}
 .lock{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
@@ -220,6 +235,62 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
     return html;
   }
 
+  function num(v) { return v == null ? "–" : Math.round(v).toLocaleString("en-US"); }
+  function cents(v) { return v == null ? "–" : "$" + v.toFixed(2); }
+  var CHN = { google: "Google", meta: "Meta", linkedin: "LinkedIn" };
+
+  function adsSection(x) {
+    var a = x.ads;
+    if (!a) return "";
+    var chs = Object.keys(a.channels || {}).filter(function (k) { return CHN[k]; });
+    var rows = [
+      ["Shown", function (v) { return num(v.impressions); }],
+      ["Clicks", function (v) { return num(v.clicks); }],
+      ["Click rate", function (v) { return v.clicks == null || !v.impressions ? "–" : (100 * v.clicks / v.impressions).toFixed(1) + "%"; }],
+      ["Cost per click", function (v) { return v.clicks ? cents(v.spend / v.clicks) : "–"; }],
+      ["Cost per 1,000 views", function (v) { return v.impressions ? cents(1000 * v.spend / v.impressions) : "–"; }],
+      ["Spent", function (v) { return cents(v.spend); }],
+      ["Form fills", function (v) { return num(v.leads); }]
+    ];
+    var html = '<h2 class="rv">How the ads are doing</h2><div class="panel rv"><table class="cmp"><thead><tr><th></th>' +
+      chs.map(function (k) { return '<th style="--c:var(--' + k + ')"><i></i>' + CHN[k] + "</th>"; }).join("") + "</tr></thead><tbody>" +
+      rows.map(function (r) { return "<tr><td>" + r[0] + "</td>" + chs.map(function (k) { return "<td>" + r[1](a.channels[k]) + "</td>"; }).join("") + "</tr>"; }).join("") +
+      '</tbody></table><p class="note">From the ad accounts, ' + esc(a.as_of || a.date) + ". Form fills are what each platform counted; the lead total above is the HubSpot count.</p></div>";
+
+    html += '<h2 class="rv">Ad scoreboard</h2><div class="panel rv">' + a.ads.map(function (ad) {
+      var cpl = ad.leads ? ad.spend / ad.leads : null;
+      return '<div class="adr" style="--c:var(--' + ad.channel + ')"><div class="top"><span class="nm"><i></i>' + esc(ad.name) + '</span><span class="lbl ' + ad.label.split(" ")[0] + '">' + esc(ad.label) + "</span></div>" +
+        '<div class="ab">' + esc(CHN[ad.channel] + " · " + (ad.about || "")) + '</div><div class="st"><span><b>' + num(ad.impressions) + "</b> shown</span>" +
+        (ad.clicks != null ? "<span><b>" + num(ad.clicks) + "</b> clicks</span>" : "") + "<span><b>" + cents(ad.spend) + "</b> spent</span><span><b>" + num(ad.leads) + "</b> form fills" + (cpl ? " · " + money(cpl) + " each" : "") + "</span></div>" +
+        '<div class="mini"><i style="--w:' + Math.round(100 * ad.judged) + '%"></i></div><div class="jd">' +
+        (ad.judged >= 1 || ad.leads >= 3 ? "Enough to judge" : money(a.judge_at - ad.spend) + " more spend before it can be judged") + "</div></div>";
+    }).join("") + '<p class="note">Rule: no ad is called a winner or loser until it has spent ' + money(a.judge_at) + " (twice the target cost per lead) or brought 3 leads. Losers are switched off and replaced with a new version of the winner.</p></div>";
+
+    var t = a.targeting || {}, kw = a.keywords || {};
+    html += '<h2 class="rv">Who sees the ads</h2><div class="panel rv"><dl class="who">' +
+      (t.region ? "<dt>Region</dt><dd>" + esc(t.region) + "</dd>" : "") + (t.google ? "<dt>Google</dt><dd>" + esc(t.google) + "</dd>" : "") +
+      (t.meta ? "<dt>Meta</dt><dd>" + esc(t.meta) + "</dd>" : "") + "</dl></div>";
+    if ((kw.targeted || []).length) {
+      html += '<div class="panel rv" style="margin-top:10px"><div class="lab"><span class="k">Google keywords we bid on</span><b>' + kw.targeted.length + '</b></div><div class="chips">' +
+        kw.targeted.map(function (k) { return "<span>" + esc(k) + "</span>"; }).join("") + "</div>" +
+        (kw.blocked ? '<div class="lab" style="margin:18px 0 0"><span class="k">Searches we block</span><b>' + kw.blocked + '</b></div><div class="chips no">' +
+          (kw.blocked_examples || []).map(function (k) { return "<span>" + esc(k) + "</span>"; }).join("") + "<span>and more</span></div>" : "") + "</div>";
+    }
+    if ((kw.top_searches || []).length) {
+      var top = Math.max.apply(null, kw.top_searches.map(function (s) { return s.impressions; })) || 1;
+      html += '<div class="panel rv" style="margin-top:10px"><div class="lab"><span class="k">What people actually searched</span></div>' +
+        kw.top_searches.map(function (s) {
+          return '<div class="srch"><span>' + esc(s.term) + '</span><span class="r">' + s.impressions + " shown · " + s.clicks + ' clicks</span><div class="mini"><i style="--w:' + pct(s.impressions, top) + '%"></i></div></div>';
+        }).join("") + (kw.top_searches_note ? '<p class="note">' + esc(kw.top_searches_note) + "</p>" : "") + "</div>";
+    }
+    if ((a.reels || []).length) {
+      html += '<h2 class="rv">Instagram reels (not paid)</h2><div class="panel rv"><table class="cmp"><thead><tr><th>Reel</th><th>Views</th><th>Likes</th><th>Shares</th><th>Saves</th></tr></thead><tbody>' +
+        a.reels.map(function (r) { return "<tr><td>" + esc(r.name) + "</td><td>" + num(r.views) + "</td><td>" + num(r.likes) + "</td><td>" + num(r.shares) + "</td><td>" + num(r.saves) + "</td></tr>"; }).join("") +
+        "</tbody></table></div>";
+    }
+    return html;
+  }
+
   function barPanel(title, steps, key, f) {
     var top = Math.max.apply(null, steps.map(function (e) { return e[key]; })) || 1, lastv = steps[steps.length - 1][key];
     return '<div class="panel"><div class="lab"><span class="k">' + title + '</span><b>' + f(lastv) + '</b></div><div class="bars">' +
@@ -302,10 +373,10 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
       '<main class="page pre" id="page">' +
       '<p class="kick rv">UAE e-invoicing lead campaign · week ' + x.week + " of 10 · " + esc(wk.theme || "") + "</p>" +
       '<div class="panel rv"><div class="hero"><div class="big">' + x.days_left + '</div><p>days until <b>UAE e-invoicing</b><br>goes live on 1 January 2027</p></div>' +
-      timeline(c, x.date) + '<div class="daynote"><span>Campaign day ' + x.day_n + " of " + x.days_total + "</span><span>" + money(x.kpis ? x.kpis.spend_total : 0) + " of " + money(c.budget) + " spent</span></div></div>" +
+      timeline(c, x.date) + '<div class="daynote"><span>Campaign day ' + x.day_n + " of " + x.days_total + "</span><span>" + money((x.series || []).length ? x.series[x.series.length - 1].spend : 0) + " of " + money(c.budget) + " spent</span></div></div>" +
       (t ? '<h2 class="rv">Latest update</h2><p class="dlabel rv">' + fmt(t.date, { weekday: "long", month: "long", day: "numeric" }) + '</p><p class="today rv">' + esc(t.text) + "</p>" +
         (t.next ? '<div class="next rv"><span class="k">Next</span>' + esc(t.next) + "</div>" : "") : "") +
-      '<h2 class="rv">' + ((x.series || []).length ? "Dashboard" : "Scoreboard") + "</h2>" + scoreboard(x) +
+      '<h2 class="rv">' + ((x.series || []).length ? "Dashboard" : "Scoreboard") + "</h2>" + scoreboard(x) + adsSection(x) +
       '<h2 class="rv">The 10-week plan</h2>' + plan(x) +
       (x.log.length > 1 ? '<h2 class="rv">Earlier updates</h2><div class="log rv">' + x.log.slice(1).map(function (e) {
         return '<div class="ent"><div class="dl">' + fmt(e.date, { weekday: "short", month: "short", day: "numeric" }) + "</div><p>" + esc(e.text) + "</p>" +
