@@ -261,7 +261,7 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
       var cpl = ad.leads ? ad.spend / ad.leads : null;
       return '<div class="adr" style="--c:var(--' + ad.channel + ')"><div class="top"><span class="nm"><i></i>' + esc(ad.name) + '</span><span class="lbl ' + ad.label.split(" ")[0] + '">' + esc(ad.label) + "</span></div>" +
         '<div class="ab">' + esc(CHN[ad.channel] + " · " + (ad.about || "")) + '</div><div class="st"><span><b>' + num(ad.impressions) + "</b> shown</span>" +
-        (ad.clicks != null ? "<span><b>" + num(ad.clicks) + "</b> clicks</span>" : "") + "<span><b>" + cents(ad.spend) + "</b> spent</span><span><b>" + num(ad.leads) + "</b> form fills" + (cpl ? " · " + money(cpl) + " each" : "") + "</span></div>" +
+        (ad.clicks != null ? "<span><b>" + num(ad.clicks) + "</b> clicks</span>" : "") + "<span><b>" + cents(ad.spend) + "</b> spent</span><span><b>" + num(ad.leads) + "</b> form fills" + (cpl ? " · " + money(cpl) + " each" : "") + (ad.suspect ? " · " + num(ad.suspect) + " look fake" : "") + "</span></div>" +
         '<div class="mini"><i style="--w:' + Math.round(100 * ad.judged) + '%"></i></div><div class="jd">' +
         (ad.judged >= 1 || ad.leads >= 3 ? "Enough to judge" : money(a.judge_at - ad.spend) + " more spend before it can be judged") + "</div></div>";
     }).join("") + '<p class="note">Rule: no ad is called a winner or loser until it has spent ' + money(a.judge_at) + " (twice the target cost per lead) or brought 3 leads. Losers are switched off and replaced with a new version of the winner.</p></div>";
@@ -373,7 +373,7 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
       '<main class="page pre" id="page">' +
       '<p class="kick rv">UAE e-invoicing lead campaign · week ' + x.week + " of 10 · " + esc(wk.theme || "") + "</p>" +
       '<div class="panel rv"><div class="hero"><div class="big">' + x.days_left + '</div><p>days until <b>UAE e-invoicing</b><br>goes live on 1 January 2027</p></div>' +
-      timeline(c, x.date) + '<div class="daynote"><span>Campaign day ' + x.day_n + " of " + x.days_total + "</span><span>" + money((x.series || []).length ? x.series[x.series.length - 1].spend : 0) + " of " + money(c.budget) + " spent</span></div></div>" +
+      timeline(c, x.date) + '<div class="daynote"><span>Campaign day ' + x.day_n + " of " + x.days_total + "</span><span>" + money((x.series || []).filter(function (s) { return s.spend != null; }).map(function (s) { return s.spend; }).pop() || 0) + " of " + money(c.budget) + " spent</span></div></div>" +
       (t ? '<h2 class="rv">Latest update</h2><p class="dlabel rv">' + fmt(t.date, { weekday: "long", month: "long", day: "numeric" }) + '</p><p class="today rv">' + esc(t.text) + "</p>" +
         (t.next ? '<div class="next rv"><span class="k">Next</span>' + esc(t.next) + "</div>" : "") : "") +
       '<h2 class="rv">' + ((x.series || []).length ? "Dashboard" : "Scoreboard") + "</h2>" + scoreboard(x) + adsSection(x) +
