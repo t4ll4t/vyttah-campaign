@@ -101,6 +101,14 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
 .srch{display:grid;grid-template-columns:1fr auto;gap:3px 12px;padding:8px 0;border-top:1px solid var(--rule);font-size:14px}.srch:first-of-type{border-top:0}
 .srch .r{color:var(--muted);font-size:13px;text-align:right}.srch .mini{grid-column:1/-1;height:4px}.srch .mini i{background:var(--google)}
 .note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:stretch;margin-top:4px}.vs .x{align-self:center;font:400 22px/1 var(--serif);color:var(--faint)}
+.side{border:1px solid var(--rule);border-radius:12px;padding:14px;background:var(--bg)}.side .rl{font:600 10.5px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.side .sn{font-weight:650;font-size:16px;margin:6px 0 2px}.side .sb{font-size:13px;color:var(--muted);line-height:1.35}.side .st{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--muted);margin-top:10px}.side .st b{color:var(--ink);font-weight:600}
+.rhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.rhead b{font:400 22px/1 var(--serif)}
+.lbl.leading,.lbl.champion{background:var(--good);border-color:var(--good);color:#fff}.lbl.challenger{border-color:var(--meta);color:var(--meta)}
+.lbl.waiting,.lbl.later,.lbl.planned{border-style:dashed}.lbl.out{border-color:var(--bad);color:var(--bad)}.lbl.live{background:var(--ink);border-color:var(--ink);color:#fff}
+.duel{display:grid;grid-template-columns:1fr 1fr;gap:10px}.duel>div{border:1px solid var(--rule);border-radius:12px;padding:12px 14px}.duel b{font:400 26px/1 var(--serif);float:right}.duel .sn{font-weight:650}.duel .sb{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.35;clear:both}
+@media (max-width:560px){.vs{grid-template-columns:1fr}.vs .x{justify-self:center}.duel{grid-template-columns:1fr}}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .motion .rv{opacity:0}.motion .rv.in{animation:rise .65s cubic-bezier(.2,.75,.25,1) both;animation-delay:calc(var(--i,0)*70ms)}.motion .rv.done{opacity:1;animation:none}
 .lock{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
@@ -291,6 +299,42 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
     return html;
   }
 
+  function tournamentSection(x) {
+    var tn = x.tournament;
+    if (!tn) return "";
+    var by = {};
+    (tn.strategies || []).forEach(function (s) { by[s.key] = s; });
+    var lab = { leading: "leading", testing: "testing", next: "next up", waiting: "waiting", later: "later", out: "out", champion: "champion", challenger: "challenger" };
+    var html = '<h2 class="rv">Strategy tournament</h2>';
+    var r = tn.round;
+    if (r) {
+      html += '<div class="panel rv"><div class="rhead"><b>Round ' + r.n + '</b><span class="lbl ' + esc(r.status) + '">' + esc(r.status) + "</span></div>" +
+        (r.when ? '<p class="note" style="margin:0 0 12px">' + esc(r.when) + "</p>" : "") + '<div class="vs">' +
+        r.sides.map(function (sd, i) {
+          var s = by[sd.key] || { name: sd.key, bet: "" };
+          var cpl = sd.real_leads ? sd.spend / sd.real_leads : null;
+          return (i ? '<div class="x">vs</div>' : "") + '<div class="side"><div class="rl">' + esc(sd.role) + '</div><div class="sn">' + esc(s.name) + '</div><div class="sb">' + esc(s.bet) + '</div><div class="st">' +
+            "<span><b>" + money(sd.budget_day) + "</b> a day</span>" + (sd.spend != null ? "<span><b>" + cents(sd.spend) + "</b> spent</span>" : "") +
+            (sd.real_leads != null ? "<span><b>" + num(sd.real_leads) + "</b> real leads" + (cpl ? " · " + money(cpl) + " each" : "") + "</span>" : "") + "</div></div>";
+        }).join("") + "</div>" + (r.note ? '<p class="note">' + esc(r.note) + "</p>" : "") + "</div>";
+    }
+    html += '<div class="panel rv" style="margin-top:10px"><div class="lab"><span class="k">All strategies</span><b>' + (tn.strategies || []).length + "</b></div>" +
+      (tn.strategies || []).map(function (s) {
+        return '<div class="adr"><div class="top"><span class="nm">' + esc(s.name) + '</span><span class="lbl ' + esc(s.status === "next" ? "challenger" : s.status) + '">' + esc(lab[s.status] || s.status) + '</span></div><div class="ab">' + esc(s.bet) + "</div>" +
+          (s.evidence ? '<div class="st"><span>' + esc(s.evidence) + "</span></div>" : "") + "</div>";
+      }).join("") + (tn.how ? '<p class="note">How it works: ' + esc(tn.how) + "</p>" : "") + "</div>";
+    var sg = tn.strategists;
+    if (sg) {
+      html += '<div class="panel rv" style="margin-top:10px"><div class="lab"><span class="k">Strategist duel</span><span class="k">' + (sg.rounds_scored ? sg.rounds_scored + " rounds scored" : "not scored yet") + '</span></div><div class="duel">' +
+        sg.sides.map(function (s) { return "<div><b>" + num(s.score) + '</b><span class="sn">' + esc(s.name) + '</span><div class="sb">' + esc(s.belief) + "</div></div>"; }).join("") +
+        "</div>" + '<p class="note">' + esc(sg.about) + (sg.next ? " " + esc(sg.next) + "." : "") + "</p></div>";
+    }
+    (tn.history || []).forEach(function (h) {
+      html += '<div class="panel rv" style="margin-top:10px"><div class="lab"><span class="k">Round ' + h.n + '</span><b>' + esc(h.winner || "") + '</b></div><p class="note" style="margin:0">' + esc(h.summary || "") + "</p></div>";
+    });
+    return html;
+  }
+
   function barPanel(title, steps, key, f) {
     var top = Math.max.apply(null, steps.map(function (e) { return e[key]; })) || 1, lastv = steps[steps.length - 1][key];
     return '<div class="panel"><div class="lab"><span class="k">' + title + '</span><b>' + f(lastv) + '</b></div><div class="bars">' +
@@ -376,7 +420,7 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
       timeline(c, x.date) + '<div class="daynote"><span>Campaign day ' + x.day_n + " of " + x.days_total + "</span><span>" + money((x.series || []).filter(function (s) { return s.spend != null; }).map(function (s) { return s.spend; }).pop() || 0) + " of " + money(c.budget) + " spent</span></div></div>" +
       (t ? '<h2 class="rv">Latest update</h2><p class="dlabel rv">' + fmt(t.date, { weekday: "long", month: "long", day: "numeric" }) + '</p><p class="today rv">' + esc(t.text) + "</p>" +
         (t.next ? '<div class="next rv"><span class="k">Next</span>' + esc(t.next) + "</div>" : "") : "") +
-      '<h2 class="rv">' + ((x.series || []).length ? "Dashboard" : "Scoreboard") + "</h2>" + scoreboard(x) + adsSection(x) +
+      '<h2 class="rv">' + ((x.series || []).length ? "Dashboard" : "Scoreboard") + "</h2>" + scoreboard(x) + adsSection(x) + tournamentSection(x) +
       '<h2 class="rv">The 10-week plan</h2>' + plan(x) +
       (x.log.length > 1 ? '<h2 class="rv">Earlier updates</h2><div class="log rv">' + x.log.slice(1).map(function (e) {
         return '<div class="ent"><div class="dl">' + fmt(e.date, { weekday: "short", month: "short", day: "numeric" }) + "</div><p>" + esc(e.text) + "</p>" +
