@@ -108,6 +108,17 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
 .lbl.leading,.lbl.champion{background:var(--good);border-color:var(--good);color:#fff}.lbl.challenger{border-color:var(--meta);color:var(--meta)}
 .lbl.waiting,.lbl.later,.lbl.planned{border-style:dashed}.lbl.out{border-color:var(--bad);color:var(--bad)}.lbl.live{background:var(--ink);border-color:var(--ink);color:#fff}
 .duel{display:grid;grid-template-columns:1fr 1fr;gap:10px}.duel>div{border:1px solid var(--rule);border-radius:12px;padding:12px 14px}.duel b{font:400 26px/1 var(--serif);float:right}.duel .sn{font-weight:650}.duel .sb{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.35;clear:both}
+.vids{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.vid{border:1px solid var(--rule);border-radius:16px;background:var(--panel);overflow:hidden;display:flex;flex-direction:column}
+.vid video{display:block;width:100%;aspect-ratio:9/16;object-fit:cover;background:#111}
+.vid .vb{padding:12px 14px 14px}.vid .top{display:flex;justify-content:space-between;align-items:center;gap:8px}.vid .nm{font-weight:650}
+.vid .ab{font-size:12.5px;color:var(--muted);margin:3px 0 8px;line-height:1.35}.vid .st{display:flex;flex-wrap:wrap;gap:2px 12px;font-size:12.5px;color:var(--muted)}.vid .st b{color:var(--ink);font-weight:600}
+.lbl.fear{border-color:var(--bad);color:var(--bad)}.lbl.funny{border-color:var(--meta);color:var(--meta)}
+.rf{display:flex;height:8px;border-radius:999px;overflow:hidden;background:var(--track);margin-top:12px}.rf i{display:block;height:100%;width:var(--w)}.rf i.r{background:var(--good)}.rf i.f{background:var(--bad);opacity:.75}
+.rfk{display:flex;gap:12px;font-size:11.5px;color:var(--muted);margin-top:5px}.rfk span{display:flex;align-items:center;gap:5px}.rfk span::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--c)}
+.side .big{font:400 30px/1 var(--serif);margin-top:12px}.side .big small{font:500 12.5px var(--sans);color:var(--muted);margin-left:6px}
+.side .per{font-size:12.5px;color:var(--muted);margin-top:10px;border-top:1px solid var(--rule);padding-top:8px}.side .per div{display:flex;justify-content:space-between;gap:8px}
+@media (max-width:700px){.vids{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px 6px}.vid{flex:0 0 68%;scroll-snap-align:start}}
 @media (max-width:560px){.vs{grid-template-columns:1fr}.vs .x{justify-self:center}.duel{grid-template-columns:1fr}}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .motion .rv{opacity:0}.motion .rv.in{animation:rise .65s cubic-bezier(.2,.75,.25,1) both;animation-delay:calc(var(--i,0)*70ms)}.motion .rv.done{opacity:1;animation:none}
@@ -299,6 +310,45 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
     return html;
   }
 
+  function creativeSection(x) {
+    var a = x.ads;
+    if (!a) return "";
+    var vids = (a.ads || []).filter(function (ad) { return ad.video; });
+    var by = {};
+    (a.ads || []).forEach(function (ad) { by[ad.name] = ad; });
+    var name = { fear: "Fear", funny: "Funny" };
+    var html = "";
+    if (vids.length) {
+      html += '<h2 class="rv">The videos</h2><div class="vids rv">' + vids.map(function (ad) {
+        var fake = ad.suspect || 0;
+        return '<div class="vid"><video controls playsinline preload="none" poster="' + esc(ad.poster || "") + '" src="' + esc(ad.video) + '"></video><div class="vb"><div class="top"><span class="nm">' + esc(ad.name) + "</span>" +
+          (ad.angle ? '<span class="lbl ' + esc(ad.angle) + '">' + esc(name[ad.angle] || ad.angle) + "</span>" : "") + '</div><div class="ab">' + esc(ad.about || "") + '</div><div class="st"><span><b>' + cents(ad.spend) + "</b> spent</span><span><b>" + num(ad.leads) + "</b> form fills</span>" +
+          (fake ? "<span><b>" + num(fake) + "</b> look fake</span>" : "") + "</div></div></div>";
+      }).join("") + '</div><p class="note rv">These are the ads running on Facebook and Instagram. Tap a video to play it; on a phone, swipe for the next one.</p>';
+    }
+    var ang = (a.angles || []).map(function (g) {
+      var ads = g.ads.map(function (k) { return by[k]; }).filter(Boolean);
+      var sum = function (f) { return ads.reduce(function (t, ad) { return t + (ad[f] || 0); }, 0); };
+      var spend = sum("spend"), fills = sum("leads"), fake = sum("suspect"), real = Math.max(fills - fake, 0);
+      return { g: g, ads: ads, spend: spend, fills: fills, fake: fake, real: real, cpl: real ? spend / real : null };
+    });
+    if (ang.length > 1) {
+      var judged = ang.every(function (o) { return o.spend >= a.judge_at || o.real >= 3; });
+      html += '<h2 class="rv">Funny vs fear</h2><div class="panel rv"><div class="rhead"><b>Which kind of video brings real businesses?</b><span class="lbl ' + (judged ? "live" : "planned") + '">' + (judged ? "enough to judge" : "too early to call") + '</span></div><div class="vs">' +
+        ang.map(function (o, i) {
+          var tot = o.fills || 1;
+          return (i ? '<div class="x">vs</div>' : "") + '<div class="side"><div class="rl">' + esc(o.g.name) + '</div><div class="sb" style="margin-top:6px">' + esc(o.g.about) + "</div>" +
+            '<div class="big">' + num(o.real) + "<small>real " + (o.real === 1 ? "lead" : "leads") + (o.cpl ? " · " + money(o.cpl) + " each" : "") + "</small></div>" +
+            '<div class="st"><span><b>' + cents(o.spend) + "</b> spent</span><span><b>" + num(o.fills) + "</b> form fills</span><span><b>" + num(o.fake) + "</b> look fake</span></div>" +
+            '<div class="rf"><i class="r" style="--w:' + pct(o.real, tot) + '%"></i><i class="f" style="--w:' + pct(o.fake, tot) + '%"></i></div>' +
+            '<div class="rfk"><span style="--c:var(--good)">real</span><span style="--c:var(--bad)">look fake</span></div>' +
+            (o.ads.length > 1 ? '<div class="per">' + o.ads.map(function (ad) { return "<div><span>" + esc(ad.name) + "</span><span>" + cents(ad.spend) + " · " + num(Math.max((ad.leads || 0) - (ad.suspect || 0), 0)) + " real</span></div>"; }).join("") + "</div>" : "") + "</div>";
+        }).join("") + "</div>" + (a.angles_read ? '<p class="today" style="font-size:15.5px;margin:16px 0 0">' + esc(a.angles_read) + "</p>" : "") +
+        '<p class="note">Real leads are form fills minus the ones whose details look made up; sales calls confirm. Same rule as the ads: no winner until a side has spent ' + money(a.judge_at) + " or brought 3 real leads.</p></div>";
+    }
+    return html;
+  }
+
   function tournamentSection(x) {
     var tn = x.tournament;
     if (!tn) return "";
@@ -420,7 +470,7 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
       timeline(c, x.date) + '<div class="daynote"><span>Campaign day ' + x.day_n + " of " + x.days_total + "</span><span>" + money((x.series || []).filter(function (s) { return s.spend != null; }).map(function (s) { return s.spend; }).pop() || 0) + " of " + money(c.budget) + " spent</span></div></div>" +
       (t ? '<h2 class="rv">Latest update</h2><p class="dlabel rv">' + fmt(t.date, { weekday: "long", month: "long", day: "numeric" }) + '</p><p class="today rv">' + esc(t.text) + "</p>" +
         (t.next ? '<div class="next rv"><span class="k">Next</span>' + esc(t.next) + "</div>" : "") : "") +
-      '<h2 class="rv">' + ((x.series || []).length ? "Dashboard" : "Scoreboard") + "</h2>" + scoreboard(x) + adsSection(x) + tournamentSection(x) +
+      '<h2 class="rv">' + ((x.series || []).length ? "Dashboard" : "Scoreboard") + "</h2>" + scoreboard(x) + adsSection(x) + creativeSection(x) + tournamentSection(x) +
       '<h2 class="rv">The 10-week plan</h2>' + plan(x) +
       (x.log.length > 1 ? '<h2 class="rv">Earlier updates</h2><div class="log rv">' + x.log.slice(1).map(function (e) {
         return '<div class="ent"><div class="dl">' + fmt(e.date, { weekday: "short", month: "short", day: "numeric" }) + "</div><p>" + esc(e.text) + "</p>" +
