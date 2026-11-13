@@ -113,7 +113,7 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
 .vid video{display:block;width:100%;aspect-ratio:9/16;object-fit:cover;background:#111}
 .vid .vb{padding:12px 14px 14px}.vid .top{display:flex;justify-content:space-between;align-items:center;gap:8px}.vid .nm{font-weight:650}
 .vid .ab{font-size:12.5px;color:var(--muted);margin:3px 0 8px;line-height:1.35}.vid .st{display:flex;flex-wrap:wrap;gap:2px 12px;font-size:12.5px;color:var(--muted)}.vid .st b{color:var(--ink);font-weight:600}
-.lbl.fear{border-color:var(--bad);color:var(--bad)}.lbl.funny{border-color:var(--meta);color:var(--meta)}
+.lbl.fear{border-color:var(--bad);color:var(--bad)}.lbl.funny{border-color:var(--meta);color:var(--meta)}.lbl.explainer{border-color:var(--linkedin);color:var(--linkedin)}.lbl.switched{border-style:dashed;color:var(--alt)}.lbl.just{border-color:var(--meta);color:var(--meta)}
 .rf{display:flex;height:8px;border-radius:999px;overflow:hidden;background:var(--track);margin-top:12px}.rf i{display:block;height:100%;width:var(--w)}.rf i.r{background:var(--good)}.rf i.f{background:var(--bad);opacity:.75}
 .rfk{display:flex;gap:12px;font-size:11.5px;color:var(--muted);margin-top:5px}.rfk span{display:flex;align-items:center;gap:5px}.rfk span::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--c)}
 .side .big{font:400 30px/1 var(--serif);margin-top:12px}.side .big small{font:500 12.5px var(--sans);color:var(--muted);margin-left:6px}
@@ -288,7 +288,7 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
     var t = a.targeting || {}, kw = a.keywords || {};
     html += '<h2 class="rv">Who sees the ads</h2><div class="panel rv"><dl class="who">' +
       (t.region ? "<dt>Region</dt><dd>" + esc(t.region) + "</dd>" : "") + (t.google ? "<dt>Google</dt><dd>" + esc(t.google) + "</dd>" : "") +
-      (t.meta ? "<dt>Meta</dt><dd>" + esc(t.meta) + "</dd>" : "") + "</dl></div>";
+      (t.meta ? "<dt>Meta</dt><dd>" + esc(t.meta) + "</dd>" : "") + (t.linkedin ? "<dt>LinkedIn</dt><dd>" + esc(t.linkedin) + "</dd>" : "") + "</dl></div>";
     if ((kw.targeted || []).length) {
       html += '<div class="panel rv" style="margin-top:10px"><div class="lab"><span class="k">Google keywords we bid on</span><b>' + kw.targeted.length + '</b></div><div class="chips">' +
         kw.targeted.map(function (k) { return "<span>" + esc(k) + "</span>"; }).join("") + "</div>" +
@@ -316,15 +316,15 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
     var vids = (a.ads || []).filter(function (ad) { return ad.video; });
     var by = {};
     (a.ads || []).forEach(function (ad) { by[ad.name] = ad; });
-    var name = { fear: "Fear", funny: "Funny" };
+    var name = { fear: "Fear", funny: "Funny", explainer: "Explainer" };
     var html = "";
     if (vids.length) {
       html += '<h2 class="rv">The videos</h2><div class="vids rv">' + vids.map(function (ad) {
         var fake = ad.suspect || 0;
-        return '<div class="vid"><video controls playsinline preload="none" poster="' + esc(ad.poster || "") + '" src="' + esc(ad.video) + '"></video><div class="vb"><div class="top"><span class="nm">' + esc(ad.name) + "</span>" +
+        return '<div class="vid"><video controls playsinline preload="none"' + (ad.aspect ? ' style="aspect-ratio:' + esc(ad.aspect) + ';object-fit:contain"' : "") + ' poster="' + esc(ad.poster || "") + '" src="' + esc(ad.video) + '"></video><div class="vb"><div class="top"><span class="nm">' + esc(ad.name) + "</span>" +
           (ad.angle ? '<span class="lbl ' + esc(ad.angle) + '">' + esc(name[ad.angle] || ad.angle) + "</span>" : "") + '</div><div class="ab">' + esc(ad.about || "") + '</div><div class="st"><span><b>' + cents(ad.spend) + "</b> spent</span><span><b>" + num(ad.leads) + "</b> form fills</span>" +
           (fake ? "<span><b>" + num(fake) + "</b> look fake</span>" : "") + "</div></div></div>";
-      }).join("") + '</div><p class="note rv">These are the ads running on Facebook and Instagram. Tap a video to play it; on a phone, swipe for the next one.</p>';
+      }).join("") + '</div><p class="note rv">These are the ads, on Facebook, Instagram and LinkedIn. Tap a video to play it; on a phone, swipe for the next one.</p>';
     }
     var ang = (a.angles || []).map(function (g) {
       var ads = g.ads.map(function (k) { return by[k]; }).filter(Boolean);
@@ -334,7 +334,7 @@ h2::after{content:"";flex:1;border-top:1px solid var(--rule)}
     });
     if (ang.length > 1) {
       var judged = ang.every(function (o) { return o.spend >= a.judge_at || o.real >= 3; });
-      html += '<h2 class="rv">Funny vs fear</h2><div class="panel rv"><div class="rhead"><b>Which kind of video brings real businesses?</b><span class="lbl ' + (judged ? "live" : "planned") + '">' + (judged ? "enough to judge" : "too early to call") + '</span></div><div class="vs">' +
+      html += '<h2 class="rv">' + esc(ang.map(function (o) { return o.g.name; }).join(" vs ")) + '</h2><div class="panel rv"><div class="rhead"><b>Which kind of video brings real businesses?</b><span class="lbl ' + (judged ? "live" : "planned") + '">' + (judged ? "enough to judge" : "too early to call") + '</span></div><div class="vs">' +
         ang.map(function (o, i) {
           var tot = o.fills || 1;
           return (i ? '<div class="x">vs</div>' : "") + '<div class="side"><div class="rl">' + esc(o.g.name) + '</div><div class="sb" style="margin-top:6px">' + esc(o.g.about) + "</div>" +
